@@ -1,0 +1,62 @@
+#!/bin/bash
+set -e
+
+GITHUB_REPO=smurthas/psemoji
+GITHUB_URL="https://github.com/$GITHUB_REPO/blob/master/🚲"
+INSTALL_DIR=$HOME/.🚲
+INSTALL_FILE=$INSTALL_DIR/🚲
+
+# clean up any prior install
+rm -r $INSTALL_DIR 2> /dev/null || true
+mkdir $INSTALL_DIR
+
+FILENAME=${BASH_SOURCE[0]}
+if [ -f $FILENAME ]
+then
+  # copy in the script from the FS
+  cp -r 🚲  $INSTALL_DIR
+else
+  # curl'd the install script from GH, so let's curl the psemoji script as well
+  curl -s $GITHUB_URL > $INSTALL_FILE
+fi
+
+# install the cronjob
+(crontab -l | grep -v "🚲" || true; echo "* * * * * . $INSTALL_FILE && refresh_weather_cache") | crontab -
+
+PROFILE=$HOME/.profile
+PROFILE_LINE_COUNT=`cat $PROFILE | wc -l`
+
+PROFILE_TMP=$PROFILE.tmp
+PROFILE_BKP=$PROFILE.🚲-bkp
+
+# backup the .profile file just in case
+cp $PROFILE $PROFILE_BKP
+
+# add lines to the .profile and write it out
+(cat $PROFILE | (grep -v "psemoji" || true) | grep -v "🚲" || true; echo "# psemoji prompt modification 🚲"; echo "source $INSTALL_FILE") > $PROFILE_TMP
+
+# check the line count of the new file
+NEW_PROFILE_LINE_COUNT=`cat $PROFILE_TMP | wc -l`
+if [ "$PROFILE_LINE_COUNT" -gt "$NEW_PROFILE_LINE_COUNT" ]
+then
+  # the line count of the new file was less than that of the old file, this
+  # shouldn't happen, so we'll let the use know there is a backup and exit 1
+  echo "😬"
+  echo "Something doesn't quite seem right with your new $PROFILE file."
+  echo "But don't worry, there's a backup of the original at $PROFILE_BKP."
+  exit 1
+else
+  rm $PROFILE
+  mv $PROFILE_TMP $PROFILE
+  . $INSTALL_FILE && refresh_weather_cache
+  echo ""
+  echo "👍"
+  echo ""
+  echo "To be extra double safe that your .profile didn't get messed up we made"
+  echo "a backup before we started at $PROFILE_BKP. If you"
+  echo "want to clean it up you can run:"
+  echo ""
+  echo "  rm $PROFILE_BKP"
+  echo ""
+  echo "Thanks, simon"
+fi

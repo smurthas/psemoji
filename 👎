@@ -1,0 +1,33 @@
+#!/bin/bash
+set -e
+INSTALL_DIR=$HOME/.🚲
+rm -r $INSTALL_DIR 2> /dev/null || true
+
+# uninstall the cronjob
+crontab -l | grep -v "🚲" || true | crontab -
+
+PROFILE=$HOME/.profile
+
+PROFILE_TMP=$PROFILE.tmp
+PROFILE_BKP=$PROFILE.🚲-bkp
+
+# backup the .profile file just in case
+cp $PROFILE $PROFILE_BKP
+
+# add lines to the .profile and write it out
+cat $PROFILE | grep -v "🚲"  > $PROFILE_TMP
+
+# check the line count of the new file
+rm $PROFILE
+mv $PROFILE_TMP $PROFILE
+rm /tmp/last_weather_string 2>/dev/null || true
+echo ""
+echo "All Set!"
+echo ""
+echo "To be extra double safe that your .profile didn't get messed up we made"
+echo "a backup before we started at $PROFILE_BKP. If you"
+echo "want to clean it up you can run:"
+echo ""
+echo "  rm $PROFILE_BKP"
+echo ""
+echo "Thanks, simon"

@@ -146,6 +146,21 @@ function get_seasonal() {
 
   # Holidays, etc
   case "`date +%m%d`" in
+    0214)
+      res=💝
+      ;;
+    0316)
+      res=💏
+      ;;
+    0317)
+      res=🍀
+      ;;
+    0325)
+      res=🎉
+      ;;
+    0623)
+      res=💍
+      ;;
     0626)
       res=🌻
       ;;
@@ -161,17 +176,11 @@ function get_seasonal() {
     1031)
       res="🎃 👻"
       ;;
+    1105)
+      res=🇬🇧
+      ;;
     1225)
       res="🎅 🎄"
-      ;;
-    0317)
-      res=🍀
-      ;;
-    0316)
-      res=💏
-      ;;
-    0623)
-      res=💍
       ;;
   esac
   if [ "$res" != "" ]

@@ -29,8 +29,9 @@ function get_weather() {
   res=`curl -s $url | tr '\n' ' '`
   #echo res: $res  | tr '\n' ' ' 1>&2
   #echo pretty res: $res | tr '\n' ' ' | python -mjson.tool 1>&2
-  code=`echo $res | tr '\n' ' ' | python -mjson.tool | grep code | head -n1 | grep -o "[0-9][0-9]*"`
-  temp=`echo $res | tr '\n' ' ' | python -mjson.tool | grep temp | head -n1 | grep -o "\-*[0-9][0-9]*"`
+  code=`echo $res | tr '\n' ' ' | python -mjson.tool 2>/dev/null | grep code | head -n1 | grep -o "[0-9][0-9]*"` 2>/dev/null
+  temp=`echo $res | tr '\n' ' ' | python -mjson.tool 2>/dev/null | grep temp | head -n1 | grep -o "\-*[0-9][0-9]*"` 2>/dev/null
+  if [ "$code" == "" ]; then exit 1; fi
   emoji="($code)"
 
   case $code in
@@ -61,7 +62,7 @@ function get_weather() {
   29 | 31 | 33)
     emoji=$MOON
     ;;
-  30 | 44)
+  21 | 30 | 44)
     emoji=$PARTLY
     ;;
   esac

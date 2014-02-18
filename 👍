@@ -14,7 +14,8 @@ FILENAME=${BASH_SOURCE[0]}
 if [ -f $FILENAME ]
 then
   # copy in the script from the FS
-  cp -r 🚲  $INSTALL_DIR
+  DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  cp -r $DIR/🚲  $INSTALL_DIR
 else
   # curl'd the install script from GH, so let's curl the psemoji script as well
   curl -s $GITHUB_URL > $INSTALL_FILE

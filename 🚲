@@ -1,5 +1,12 @@
 #!/bin/bash
 
+RED="\033[0;31m" #red
+YEL="\033[0;33m" #yellow
+CYN="\033[0;36m" #cyan
+BLINK="\033[05m" #blink
+RED_BLINK="\033[0;31;5m" #red blink
+COLOR_RESET="\033[0m"
+
 function get_location() {
   curl -s "http://ipinfo.io/" | grep loc | grep -o \\-*[0-9][0-9]*.[0-9][0-9]*,\\-*[0-9][0-9]*.[0-9][0-9]*
 }
@@ -69,20 +76,17 @@ function get_weather() {
 
   emoji="${emoji} "
   tempstr="${temp}°"
-  echo $tempstr$emoji
-  return
 
-  # doesn't work with the dynamic \$(fn) subshell syntax (why not?)
   tempcolor=
   if [ "$temp" -lt "40" ]
   then
     tempcolor=$CYN
-  elif [ "$temp" -gt "69" ]
-  then
-    tempcolor=$YEL
   elif [ "$temp" -gt "79" ]
   then
     tempcolor=$RED
+  elif [ "$temp" -gt "69" ]
+  then
+    tempcolor=$YEL
   fi
   echo $tempcolor$tempstr$COLOR_RESET$emoji
 }
@@ -100,12 +104,12 @@ function refresh_weather_cache() {
 
   echo $weather > $LAST_WEATHER_FILE
 }
+
 function get_weather_with_cache() {
   cat $LAST_WEATHER_FILE 2>/dev/null
 }
 
-
-function get_seasonal() {
+function get_moon() {
   now=`date +%s`
   #now=1639814418 # test: Dec 18th, 2021, should be full moon
   new_moon=1383500000
@@ -143,6 +147,52 @@ function get_seasonal() {
       moon=🌘
       ;;
   esac
+
+  echo $moon
+}
+
+function get_battery_percentage() {
+  pmset -g batt | grep -o [0-9]*% | sed 's/%//g'
+}
+
+function get_lock() {
+  if [ ! -w . ]; then
+    echo "🔒  "
+  fi
+}
+
+function get_battery() {
+  batt=`get_battery_percentage`
+  if [ "$batt" -gt "14" ]; then
+    return
+  elif [ "$batt" -lt "4" ]; then
+    res="$RED_BLINK"
+  elif [ "$batt" -lt "9" ]; then
+    res="$RED"
+  fi
+
+  echo -e "$res 🔋 ($batt%)$COLOR_RESET"
+}
+
+function get_other() {
+  res=
+
+  #if [ "`system_profiler SPUSBDataType | grep iPhone`" != "" ]; then
+  #  res="📱  $res"
+  #fi
+
+  res=`get_lock`$res
+
+  if [ "$?" != "0" ]; then
+    res="❗️ $res"
+  fi
+
+  res="`get_battery` $res"
+
+  echo $res
+}
+
+function get_holiday() {
   res=
 
   # Holidays, etc
@@ -184,16 +234,41 @@ function get_seasonal() {
       res="🎅 🎄"
       ;;
   esac
+
   if [ "$res" != "" ]
   then
     res="$res  "
   fi
-  echo "$res$moon  "
+
+  echo -e $res
+}
+
+function get_seasonal() {
+  moon=`get_moon`
+
+  res=`get_holiday``get_other`
+
+  if [ "$res" != "" ]
+  then
+    res="$res  "
+  fi
+  echo -e "$res$moon  "
+}
+
+function get_exit_code() {
+  if [ "$1" != "0" ]; then
+    echo -e "❗️ "
+  fi
+}
+
+function get_hostname_color() {
+  color="\033[0;$(expr $(expr `echo $((0x\`echo blargh | md5\`))` % 6) + 31)m"
+  echo -e $color
 }
 
 function get_emoji_prompt() {
-       #   current time          temp + weather
-  echo "\$(get_seasonal)$DT\$(date +\"%T\")$IN \$(get_weather_with_cache)  "
+  #                                          current time          temp + weather
+  echo -e "\$(get_exit_code \$?)\$(get_seasonal)$DT\$(date +\"%T\")$IN \$(get_weather_with_cache)  "
 }
 
 export PS1=`get_emoji_prompt`$PS1

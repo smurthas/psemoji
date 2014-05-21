@@ -5,7 +5,7 @@ Get some emoji in your prompt!
 ### Install 💪
 
 ```bash
-curl https://raw.githubusercontent.com/smurthas/psemoji/master/$(perl -MURI::Escape -e 'print uri_escape("👍");') | sh
+curl https://raw.githubusercontent.com/smurthas/psemoji/master/$(python -c 'import urllib; print urllib.quote_plus("👍")') | sh
 ```
 
 The install script will set up a cronjob that will pull down weather info and
@@ -44,5 +44,5 @@ add an `export PS=` line to your `~/.profile`. 👌
 ### Uninstall 😔
 
 ```
-curl https://raw.githubusercontent.com/smurthas/psemoji/master/$(perl -MURI::Escape -e 'print uri_escape("👎");') | sh
+curl https://raw.githubusercontent.com/smurthas/psemoji/master/$(python -c 'import urllib; print urllib.quote_plus("👎")') | sh
 ```

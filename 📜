@@ -5,20 +5,44 @@ Get some emoji in your prompt!
 ### Install 💪
 
 ```bash
-curl https://raw.github.com/smurthas/psemoji/master/$(perl -MURI::Escape -e 'print uri_escape("👍");') | sh
+curl https://raw.githubusercontent.com/smurthas/psemoji/master/$(perl -MURI::Escape -e 'print uri_escape("👍");') | sh
 ```
 
 The install script will set up a cronjob that will pull down weather info and
 add an `export PS=` line to your `~/.profile`. 👌
 
-### Example
+### Features
 
+**Moon cycle and local weather!**
 ```
-🌔  20:20:35 46°⛅️  smurthas/psemoji:
+🌔  20:20:35 46°⛅️  🏠/psemoji:
 ```
+
+**Non-zero exit codes → ❗️**
+```
+❗️ 🌔  20:20:35 46°⛅️  🏠/psemoji:
+```
+
+**Low battery warnings!** (Mac only)
+```
+🔋 (3%) 🌗  15:45:14 67°⛅️  🏠/psemoji:
+```
+
+**Read-only directories!**
+```
+🔒  🌗  15:46:17 67°⛅️  /:
+```
+
+**Beer-o-clock reminders!**
+```
+🍻  🌗  17:03:51 67°⛅️
+```
+
+**And SO MUCH MORE!!!** (read the source, or let yourself be suprised)
+
 
 ### Uninstall 😔
 
 ```
-curl https://raw.github.com/smurthas/psemoji/master/$(perl -MURI::Escape -e 'print uri_escape("👎");') | sh
+curl https://raw.githubusercontent.com/smurthas/psemoji/master/$(perl -MURI::Escape -e 'print uri_escape("👎");') | sh
 ```

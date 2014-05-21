@@ -192,6 +192,27 @@ function get_other() {
   echo $res
 }
 
+function get_time_of_day() {
+  res=
+
+  # Holidays, etc
+  case "`date +%H%M`" in
+    170*)
+      res=🍻
+      ;;
+    120*)
+      res=🍕
+      ;;
+  esac
+
+  if [ "$res" != "" ]
+  then
+    res="$res  "
+  fi
+
+  echo -e $res
+}
+
 function get_holiday() {
   res=
 
@@ -246,7 +267,7 @@ function get_holiday() {
 function get_seasonal() {
   moon=`get_moon`
 
-  res=`get_holiday``get_other`
+  res=`get_holiday``get_time_of_day``get_other`
 
   if [ "$res" != "" ]
   then

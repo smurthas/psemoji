@@ -2,7 +2,7 @@
 set -e
 
 GITHUB_REPO=smurthas/psemoji
-GITHUB_URL="https://raw.githubusercontent.com/$GITHUB_REPO/master/🚲"
+GITHUB_URL="https://raw.githubusercontent.com/$GITHUB_REPO/master/$(python -c 'import urllib; print urllib.quote_plus("🚲")')"
 INSTALL_DIR=$HOME/.🚲
 INSTALL_FILE=$INSTALL_DIR/🚲
 
@@ -11,7 +11,7 @@ rm -r $INSTALL_DIR 2> /dev/null || true
 mkdir $INSTALL_DIR
 
 FILENAME=${BASH_SOURCE[0]}
-if [ -f $FILENAME ]
+if [ -f $FILENAME ] && [[ "$FILENAME" != "" ]]
 then
   # copy in the script from the FS
   DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

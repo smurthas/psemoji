@@ -106,7 +106,8 @@ function refresh_weather_cache() {
 }
 
 function get_weather_with_cache() {
-  cat $LAST_WEATHER_FILE 2>/dev/null
+  w=`cat $LAST_WEATHER_FILE 2>/dev/null`
+  echo -e $w
 }
 
 function get_moon() {
@@ -151,19 +152,21 @@ function get_moon() {
   echo $moon
 }
 
-function get_battery_percentage() {
-  pmset -g batt | grep -o [0-9]*% | sed 's/%//g'
-}
-
 function get_lock() {
   if [ ! -w . ]; then
     echo "🔒  "
   fi
 }
 
+function get_battery_percentage() {
+  which pmset >/dev/null && pmset -g batt | grep -o [0-9]*% | sed 's/%//g'
+}
+
 function get_battery() {
   batt=`get_battery_percentage`
-  if [ "$batt" -gt "14" ]; then
+  if [ "$batt" == "" ]; then
+    return
+  elif [ "$batt" -gt "14" ]; then
     return
   elif [ "$batt" -lt "4" ]; then
     res="$RED_BLINK"
@@ -187,7 +190,7 @@ function get_other() {
     res="❗️ $res"
   fi
 
-  res="`get_battery` $res"
+  res="`get_battery`$res"
 
   echo $res
 }
@@ -265,15 +268,18 @@ function get_holiday() {
 }
 
 function get_seasonal() {
-  moon=`get_moon`
+  res=`get_holiday`
+  if [ "$res" != "" ]; then res="$res "; fi
 
-  res=`get_holiday``get_time_of_day``get_other`
+  res=$res`get_time_of_day`
+  if [ "$res" != "" ]; then res="$res "; fi
 
-  if [ "$res" != "" ]
-  then
-    res="$res  "
-  fi
-  echo -e "$res$moon  "
+  res=$res`get_other`
+  if [ "$res" != "" ]; then res="$res "; fi
+
+  res=$res`get_moon`
+
+  if [ "$res" != "" ]; then echo -e "$res  "; fi
 }
 
 function get_exit_code() {

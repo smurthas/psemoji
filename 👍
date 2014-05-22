@@ -2,7 +2,7 @@
 set -e
 
 GITHUB_REPO=smurthas/psemoji
-GITHUB_URL="https://github.com/$GITHUB_REPO/blob/master/🚲"
+GITHUB_URL="https://raw.githubusercontent.com/$GITHUB_REPO/master/🚲"
 INSTALL_DIR=$HOME/.🚲
 INSTALL_FILE=$INSTALL_DIR/🚲
 

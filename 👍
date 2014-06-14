@@ -6,9 +6,7 @@ GITHUB_URL="https://raw.githubusercontent.com/$GITHUB_REPO/master/$(python -c 'i
 INSTALL_DIR=$HOME/.🚲
 INSTALL_FILE=$INSTALL_DIR/🚲
 
-# clean up any prior install
-rm -r $INSTALL_DIR 2> /dev/null || true
-mkdir $INSTALL_DIR
+mkdir -p $INSTALL_DIR
 
 FILENAME=${BASH_SOURCE[0]}
 if [ -f $FILENAME ] && [[ "$FILENAME" != "" ]]
@@ -34,7 +32,13 @@ PROFILE_BKP=$PROFILE.🚲-bkp
 cp $PROFILE $PROFILE_BKP
 
 # add lines to the .profile and write it out
-(cat $PROFILE | (grep -v "psemoji" || true) | grep -v "🚲" || true; echo "# psemoji prompt modification 🚲"; echo "source $INSTALL_FILE") > $PROFILE_TMP
+(cat $PROFILE | (grep -v "psemoji" || true) | grep -v "🚲" || true; echo "# psemoji prompt modification 🚲"; echo "source $INSTALL_FILE";) > $PROFILE_TMP
+
+# if they don't have any emoji in their prompt yet, let's add the defaults
+source $PROFILE
+if [[ !$(echo $PS1 | grep "_pse_") ]]; then
+  echo "export PS1=\$PSE_STANDARD$PS1" >> $PROFILE_TMP
+fi
 
 # check the line count of the new file
 NEW_PROFILE_LINE_COUNT=`cat $PROFILE_TMP | wc -l`

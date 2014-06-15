@@ -15,6 +15,8 @@ RED_BLINK="\033[0;31;5m" #red blink
 # text format reset
 COLOR_RESET="\033[0m"
 
+MAPPINGS_FILE=$HOME/.🚲/dir-aliases.txt
+
 # echo lat,lon based on IP address
 function __pse_get_location() {
   curl -s "http://ipinfo.io/" | grep loc | grep -o \\-*[0-9][0-9]*.[0-9][0-9]*,\\-*[0-9][0-9]*.[0-9][0-9]*
@@ -342,12 +344,11 @@ function __pse_get_matching_dir() {
 }
 
 function _pse_load_dir_mappings() {
-  local mappings_file=$HOME/.🚲/emoji.txt
-  if [ ! -f $mappings_file ]; then
+  if [ ! -f $MAPPINGS_FILE ]; then
     return
   fi
   # read in the dir --> emoji mapping file
-  EMOJI_TMP=$(cat $mappings_file |tr "\n" " ")
+  EMOJI_TMP=$(cat $MAPPINGS_FILE |tr "\n" " ")
   EMOJI_TMP=($EMOJI_TMP)
 
   EMOJI_MAPPING=()
@@ -394,6 +395,33 @@ function _pse_get_dir() {
   fi
 
   echo $rest_of_path
+}
+
+function __pse_set_alias_for_dir() {
+  local dir=$1
+  local aliaz=$2
+
+  dir=${dir/$HOME/\$HOME}
+
+  sed -i.bak "s,$dir .*\$,,g" $MAPPINGS_FILE
+  sed -i.bak '/^\s*$/d' $MAPPINGS_FILE
+  echo $dir $aliaz >> $MAPPINGS_FILE
+}
+
+function psemoji() {
+  local command=$1-$2
+
+  case $command in
+    get-aliases)
+      cat $MAPPINGS_FILE
+      ;;
+    set-alias)
+      aliaz=$3
+      __pse_set_alias_for_dir `pwd` $aliaz
+      cat $MAPPINGS_FILE
+      _pse_load_dir_mappings
+      ;;
+  esac
 }
 
 # initialize the directory to emoji mappings

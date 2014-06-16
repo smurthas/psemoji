@@ -125,6 +125,9 @@ function refresh_weather_cache() {
 # echo the contents of the $LAST_WEATHER_FILE
 function _pse_weather_with_cache() {
   w=`cat $LAST_WEATHER_FILE 2>/dev/null`
+  if [ "$w" == "" ]; then
+    return
+  fi
   echo -e "$w  "
 }
 
@@ -283,7 +286,7 @@ function __pse_get_holiday() {
   echo -e $res
 }
 
-function _pse_seasonal() {
+function _pse_chrono() {
   local res=""
   local temp=""
 
@@ -293,9 +296,6 @@ function _pse_seasonal() {
   temp=`__pse_get_time_of_day`
   if [ "$temp" != "" ]; then res="$res$temp "; fi
 
-  temp=`__pse_get_warnings`
-  if [ "$temp" != "" ]; then res="$res$temp "; fi
-
   res=$res`__pse_get_moon`
 
   if [ "$res" != "" ]; then echo -e "$res  "; fi
@@ -303,8 +303,13 @@ function _pse_seasonal() {
 
 function _pse_exit_code() {
   if [ "$1" != "0" ]; then
-    echo -e "❗️ "
+    echo -n -e "❗️ "
   fi
+}
+
+function _pse_warnings() {
+  _pse_exit_code $1
+  __pse_get_warnings
 }
 
 function __pse_get_matching_dir() {
@@ -397,14 +402,26 @@ function _pse_get_dir() {
   echo $rest_of_path
 }
 
-function __pse_set_alias_for_dir() {
+function __pse_unset_alias_for_dir() {
   local dir=$1
-  local aliaz=$2
-
   dir=${dir/$HOME/\$HOME}
 
-  sed -i.bak "s,$dir .*\$,,g" $MAPPINGS_FILE
+  # replace anything that matches these two patterns:
+  # /path/to/dir
+  # /path/to/dir 🚲
+  sed -i.bak "s,^$dir\( .*\)*\$,,g" $MAPPINGS_FILE
+
+  # the last expression leaves a blank line so remove it
   sed -i.bak '/^\s*$/d' $MAPPINGS_FILE
+}
+
+function __pse_set_alias_for_dir() {
+  local dir=$1
+  dir=${dir/$HOME/\$HOME}
+  local aliaz=$2
+
+  __pse_unset_alias_for_dir $dir
+
   echo $dir $aliaz >> $MAPPINGS_FILE
 }
 
@@ -412,12 +429,17 @@ function psemoji() {
   local command=$1-$2
 
   case $command in
-    get-aliases)
+    alias-list)
       cat $MAPPINGS_FILE
       ;;
-    set-alias)
+    alias-set)
       aliaz=$3
       __pse_set_alias_for_dir `pwd` $aliaz
+      cat $MAPPINGS_FILE
+      _pse_load_dir_mappings
+      ;;
+    alias-unset)
+      __pse_unset_alias_for_dir `pwd`
       cat $MAPPINGS_FILE
       _pse_load_dir_mappings
       ;;
@@ -427,12 +449,12 @@ function psemoji() {
 # initialize the directory to emoji mappings
 _pse_load_dir_mappings
 
-PSE_EXIT_CODE_WARNING="\$(_pse_exit_code \$?)"
-PSE_SEASONAL="\$(_pse_seasonal)"
+PSE_WARNINGS="\$(_pse_warnings \$?)"
+PSE_CHRONO="\$(_pse_chrono)"
 PSE_WEATHER="\$(_pse_weather_with_cache)"
 PSE_DIR_1="\$(_pse_get_dir 1)"
 PSE_DIR_2="\$(_pse_get_dir 2)"
 PSE_DIR_3="\$(_pse_get_dir 3)"
 PSE_DIR_4="\$(_pse_get_dir 4)"
 PSE_DIR_5="\$(_pse_get_dir 5)"
-PSE_STANDARD=$PSE_EXIT_CODE_WARNING$PSE_SEASONAL$PSE_WEATHER$YEL$PSE_DIR_2$COLOR_RESET
+PSE_STANDARD=$PSE_WARNINGS$PSE_CHRONO$PSE_WEATHER$YELLOW$PSE_DIR_2$COLOR_RESET

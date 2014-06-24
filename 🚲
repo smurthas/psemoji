@@ -326,7 +326,7 @@ function __pse_get_matching_dir() {
   # subtract 1 because of zero-indexed arrays
   count=`expr $count - 1`
 
-  if [ "$count" -lt "1" ]; then
+  if [ "$count" -lt "0" ]; then
     return
   fi
 

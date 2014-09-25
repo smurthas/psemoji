@@ -46,7 +46,7 @@ UNITS=f
 function __pse_get_weather() {
   location=$1
 
-  url="http://query.yahooapis.com/v1/public/yql?q=use%20%27http%3A%2F%2Fgithub.com%2Fyql%2Fyql-tables%2Fraw%2Fmaster%2Fweather%2Fweather.bylocation.xml%27%20as%20we%3Bselect%20*%20from%20we%20where%20location%3D%22$location%22%20and%20unit%3D%27$UNITS%27&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys"
+  url="http://query.yahooapis.com/v1/public/yql?q=use%20%27https%3A%2F%2Fraw.githubusercontent.com%2Fyql%2Fyql-tables%2Fmaster%2Fweather%2Fweather.bylocation.xml%27%20as%20we%3Bselect%20*%20from%20we%20where%20location%3D%22$location%22%20and%20unit%3D%27$UNITS%27&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys"
 
   res=`curl -s $url | tr '\n' ' '`
   #echo res: $res  | tr '\n' ' ' 1>&2

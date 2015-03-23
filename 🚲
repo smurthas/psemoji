@@ -316,33 +316,53 @@ function __pse_get_matching_dir() {
   full_path=$1
 
   # set emoji as a array from the second parameter
-  declare -a emoji=("${!2}")
+  declare -a EMOJI_MAPPING=("${!2}")
+
+  rhs=$3
+
+  count=${#EMOJI_MAPPING[@]}
+
+  if [ "$count" -lt "1" ]; then
+    return
+  fi
 
   # since the array is actually alternating key value pairs, we want to skip
   # every other item, so let's just divide count by two
-  count=${#emoji[@]}
-  count=`expr $count / 2`
+  let "count /= 2"
 
   # subtract 1 because of zero-indexed arrays
-  count=`expr $count - 1`
+  let count--
 
-  if [ "$count" -lt "0" ]; then
-    return
-  fi
+  len_full_path=${#full_path}
+  let min_len=len_full_path-${#rhs}
 
   for i in `seq 0 $count`;
   do
     # index of the directory path
-    dir_i=`expr $i \* 2`
+    let dir_i=i*2
 
     # index after the directory is the emoji replacement
-    emoji_i=`expr $dir_i + 1`
+    let emoji_i=dir_i+1
 
     # grab the directory out of the array
-    this_dir=${emoji[$dir_i]}
-    if [[ "$full_path" == "$this_dir" ]]; then
-      this_emoji=${emoji[$emoji_i]}
-      echo -n $this_emoji
+    this_dir=${EMOJI_MAPPING[$dir_i]}
+    len_this_dir=${#this_dir}
+    if [[ "$len_this_dir" -gt "$len_full_path" ]]; then
+      continue
+    fi
+
+    if [[ "$len_this_dir" -le "$min_len" ]]; then
+      continue
+    fi
+
+    if [[ "${full_path:0:$len_this_dir}" == "$this_dir" ]]; then
+      remainder=${full_path:$len_this_dir}
+      this_emoji=${EMOJI_MAPPING[$emoji_i]}
+      if [[ "$remainder" == "" ]]; then
+        echo -n $this_emoji
+      else
+        echo -n $this_emoji $remainder
+      fi
       return
     fi
   done
@@ -353,7 +373,7 @@ function _pse_load_dir_mappings() {
     return
   fi
   # read in the dir --> emoji mapping file
-  EMOJI_TMP=$(cat $MAPPINGS_FILE |tr "\n" " ")
+  EMOJI_TMP=`cat $MAPPINGS_FILE | awk '{ print length, $0 }' | sort -rn | cut -d" " -f2-`
   EMOJI_TMP=($EMOJI_TMP)
 
   EMOJI_MAPPING=()
@@ -364,38 +384,34 @@ function _pse_load_dir_mappings() {
 }
 
 function _pse_get_dir() {
-  _PSE_DIR_DEPTH=$1
-  # start with pwd. Every time through the loop, we'll shift one directory off
-  # of $full_path and onto $rest_of_path until we have a match or we max out at
-  # $_PSE_DIR_DEPTH (TODO move this to a .*rc file)
-  local full_path=`pwd`
-  local rest_of_path=""
+  local orig_path=`pwd`
 
-  # first try matching the whole path
-  for i in `seq 1 $_PSE_DIR_DEPTH`; do
-    local emo=`__pse_get_matching_dir $full_path EMOJI_MAPPING[@]`
+  if [[ "$orig_path" == "/" ]]; then
+    echo "/"
+    return
+  fi
 
-    # if we matched something, we are done
-    if [[ "$emo" != "" ]]; then
-      # print the emoji itself, then a space, then any trailing dirs
-      echo $emo $rest_of_path
-      return
-    fi
+  count=$1
 
-    # accumulate the trailing, non-matched part of the path
-    rest_of_path=/`basename $full_path`$rest_of_path
-
-    # remove the deepest directory from the end of the path
-    full_path=`dirname $full_path`
-
-    # if we are already at /, we're done
-    if [[ "$full_path" == "/" ]]; then
+  while [ $count -gt 0 ]; do
+    re='.*((/[^/]+){'$count'})'
+    if [[ $orig_path =~ $re ]]; then
+      rest_of_path=${BASH_REMATCH[1]}
       break
     fi
+
+    let count=count-1
   done
 
+  local emo=`__pse_get_matching_dir $orig_path EMOJI_MAPPING[@] $rest_of_path`
+
+  if [[ "$emo" != "" ]]; then
+    echo $emo
+    return
+  fi
+
   # fixes // at root and removes leading slash for local directories
-  if [[ "$rest_of_path" != "`pwd`" ]]; then
+  if [[ "$rest_of_path" != "$orig_path" ]]; then
     rest_of_path=${rest_of_path:1}
   fi
 

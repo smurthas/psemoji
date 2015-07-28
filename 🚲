@@ -207,13 +207,12 @@ function _pse_fitbit_steps_with_cache() {
     return
   fi
 
-  color=$RED
+  color=$CYAN
   hour=`date +%H`
 
   if [[ "$steps" -gt "9999" ]]; then
     color=$GREEN
   elif [[ "$steps" -gt "7999" ]]; then
-    color=$CYAN
     if [[ "$hour" -gt "20" ]]; then
       color=$RED_BLINK
     elif [[ "$hour" -gt "19" ]]; then
@@ -222,12 +221,19 @@ function _pse_fitbit_steps_with_cache() {
       color=$YELLOW
     fi
   elif [[ "$steps" -gt "4999" ]]; then
-    color=$YELLOW
     if [[ "$hour" -gt "17" ]]; then
       color=$RED_BLINK
     elif [[ "$hour" -gt "16" ]]; then
       color=$RED
     elif [[ "$hour" -gt "15" ]]; then
+      color=$YELLOW
+    fi
+  else
+    if [[ "$hour" -gt "16" ]]; then
+      color=$RED_BLINK
+    elif [[ "$hour" -gt "15" ]]; then
+      color=$RED
+    elif [[ "$hour" -gt "14" ]]; then
       color=$YELLOW
     fi
   fi

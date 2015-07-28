@@ -107,6 +107,8 @@ function __pse_get_weather() {
 }
 
 LAST_WEATHER_FILE=/tmp/last_weather_string
+LAST_FITBIT_WATER_FILE=/tmp/last_fitbit_water_string
+LAST_FITBIT_STEPS_FILE=/tmp/last_fitbit_steps_string
 
 # refreshes the cache in $LAST_WEATHER_FILE via:
 #   IP → latlon → zip code → weather > $LAST_WEATHER_FILE
@@ -129,6 +131,109 @@ function _pse_weather_with_cache() {
     return
   fi
   echo -e "$w  "
+}
+
+function __pse_refresh_fitbit_water_cache() {
+  if which fitbit > /dev/null; then
+    water_logged=`fitbit water`
+
+    if [ "$water_logged" == "" ]; then
+      return
+    fi
+
+    echo $water_logged > $LAST_FITBIT_WATER_FILE
+  fi
+}
+
+function __pse_refresh_fitbit_steps_cache() {
+  if which fitbit > /dev/null; then
+    steps=`fitbit steps`
+
+    if [ "$steps" == "" ]; then
+      return
+    fi
+
+    echo $steps > $LAST_FITBIT_STEPS_FILE
+  fi
+}
+
+function _pse_fitbit_water_with_cache() {
+  water=`cat $LAST_FITBIT_WATER_FILE 2>/dev/null`
+
+  if [ "$water" == "" ]; then
+    return
+  fi
+
+  color=$CYAN
+  hour=`date +%H`
+
+  if [[ "$water" -gt "71" ]]; then
+    color=$GREEN
+  elif [[ "$water" -gt "47" ]]; then
+    if [[ "$hour" -gt "18" ]]; then
+      color=$RED_BLINK
+    elif [[ "$hour" -gt "17" ]]; then
+      color=$RED
+    elif [[ "$hour" -gt "16" ]]; then
+      color=$YELLOW
+    fi
+  elif [[ "$water" -gt "23" ]]; then
+    if [[ "$hour" -gt "16" ]]; then
+      color=$RED_BLINK
+    elif [[ "$hour" -gt "15" ]]; then
+      color=$RED
+    elif [[ "$hour" -gt "14" ]]; then
+      color=$YELLOW
+    fi
+  else
+    if [[ "$hour" -gt "13" ]]; then
+      color=$RED_BLINK
+    elif [[ "$hour" -gt "12" ]]; then
+      color=$RED
+    elif [[ "$hour" -gt "11" ]]; then
+      color=$YELLOW
+    fi
+  fi
+
+  droplet="💧 "
+  oz=oz
+  echo -e "$color$droplet$water$oz $COLOR_RESET"
+}
+
+function _pse_fitbit_steps_with_cache() {
+  steps=`cat $LAST_FITBIT_STEPS_FILE 2>/dev/null`
+
+  if [ "$steps" == "" ]; then
+    return
+  fi
+
+  color=$RED
+  hour=`date +%H`
+
+  if [[ "$steps" -gt "9999" ]]; then
+    color=$GREEN
+  elif [[ "$steps" -gt "7999" ]]; then
+    color=$CYAN
+    if [[ "$hour" -gt "20" ]]; then
+      color=$RED_BLINK
+    elif [[ "$hour" -gt "19" ]]; then
+      color=$RED
+    elif [[ "$hour" -gt "18" ]]; then
+      color=$YELLOW
+    fi
+  elif [[ "$steps" -gt "4999" ]]; then
+    color=$YELLOW
+    if [[ "$hour" -gt "17" ]]; then
+      color=$RED_BLINK
+    elif [[ "$hour" -gt "16" ]]; then
+      color=$RED
+    elif [[ "$hour" -gt "15" ]]; then
+      color=$YELLOW
+    fi
+  fi
+
+  footprints="👣 "
+  echo -e "$footprints$color$steps$COLOR_RESET "
 }
 
 # echo an emoji based on the moon cycle
@@ -468,6 +573,8 @@ _pse_load_dir_mappings
 PSE_WARNINGS="\$(_pse_warnings \$?)"
 PSE_CHRONO="\$(_pse_chrono)"
 PSE_WEATHER="\$(_pse_weather_with_cache)"
+PSE_FITBIT_WATER="\$(_pse_fitbit_water_with_cache)"
+PSE_FITBIT_STEPS="\$(_pse_fitbit_steps_with_cache)"
 PSE_DIR_1="\$(_pse_get_dir 1)"
 PSE_DIR_2="\$(_pse_get_dir 2)"
 PSE_DIR_3="\$(_pse_get_dir 3)"

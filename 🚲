@@ -53,6 +53,7 @@ function __pse_get_weather() {
   #echo pretty res: $res | tr '\n' ' ' | python -mjson.tool 1>&2
   code=`echo $res | tr '\n' ' ' | python -mjson.tool 2>/dev/null | grep code | head -n1 | grep -o "[0-9][0-9]*"` 2>/dev/null
   temp=`echo $res | tr '\n' ' ' | python -mjson.tool 2>/dev/null | grep temp | head -n1 | grep -o "\-*[0-9][0-9]*"` 2>/dev/null
+  forecast_temp=`echo $res | tr '\n' ' ' | python -mjson.tool 2>/dev/null | grep '"forecast": ' -A 7 | grep high | grep -o "\-*[0-9][0-9]*"` 2>/dev/null
   if [ "$code" == "" ]; then exit 1; fi
   emoji="($code)"
 
@@ -103,7 +104,22 @@ function __pse_get_weather() {
   then
     tempcolor=$YELLOW
   fi
-  echo $tempcolor$tempstr$COLOR_RESET$emoji
+
+
+  forecaststr=""
+  if [ "$temp" -lt "$forecast_temp" ]; then
+    forecast_tempcolor=$COLOR_RESET
+    if [ "$forecast_temp" -lt "40" ]; then
+      forecast_tempcolor=$CYN
+    elif [ "$forecast_temp" -gt "79" ]; then
+      forecast_tempcolor=$RED
+    elif [ "$forecast_temp" -gt "69" ]; then
+      forecast_tempcolor=$YELLOW
+    fi
+    forecaststr=$COLOR_RESET→$forecast_tempcolor$forecast_temp°
+  fi
+
+  echo $tempcolor$tempstr$forecaststr$COLOR_RESET$emoji
 }
 
 LAST_WEATHER_FILE=/tmp/last_weather_string

@@ -5,7 +5,7 @@ Get some emoji in your prompt!
 ### Install 💪
 
 ```bash
-curl https://raw.githubusercontent.com/smurthas/psemoji/master/$(python -c 'import urllib; print urllib.quote_plus("👍")') | bash
+curl https://raw.githubusercontent.com/smurthas/psemoji/refs/heads/master/%F0%9F%91%8D | bash
 ```
 
 The install script will set up a cronjob that will pull down weather info and
